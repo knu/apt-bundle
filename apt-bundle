@@ -81,6 +81,10 @@ main() {
         exit 64
     fi
 
+    for file in apt curl; do
+        type "$file" >/dev/null 2>&1 || die "$file is not installed"
+    done
+
     initialize
 
     cat -- "$@" > "$TmpDir/Debfile"
