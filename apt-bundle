@@ -81,11 +81,21 @@ main() {
         exit 64
     fi
 
-    for file in apt curl; do
-        type "$file" >/dev/null 2>&1 || die "$file is not installed"
-    done
+    type apt >/dev/null 2>&1 || die "apt is not installed"
 
     initialize
+
+    for file in apt-transport-https curl gpg; do
+        is_installed "$file" && continue
+        [ -n "$DryRun" ] && die "$file is not installed"
+        printf "%s\0" "$file"
+    done > "$TmpDir/packages"
+
+    if [ -s "$TmpDir/packages" ]; then
+        echo "installing necessary packages"
+        xrun apt install -y < "$TmpDir/packages"
+        : > "$TmpDir/packages"
+    fi
 
     eval "$(sed 's/^/export /' /etc/os-release)"
 
@@ -166,6 +176,10 @@ finalize() {
 die() {
     printf "%s: %s\n" "$0" "$*" >&2
     exit 1
+}
+
+is_installed() {
+    [ "$(dpkg-query --show --showformat='${db:Status-Status}\n' "$1" 2>/dev/null)" = installed ]
 }
 
 package() {
