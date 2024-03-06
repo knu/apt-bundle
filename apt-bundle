@@ -111,7 +111,7 @@ main() {
         filename=$(basename "$file" .sh).gpg
         dest=$destdir/$filename
         tmpfile=$TmpDir/keyrings/$filename
-        [ -f "$dest" ] || (
+        (
             set -e
             dir=$TmpDir/tmp
             rm -rf "$dir"
@@ -122,8 +122,9 @@ main() {
                 gpg --dearmor < "$tmpfile" > keyring.gpg
                 mv keyring.gpg "$tmpfile"
             fi
-            run install -o 0 -g 0 -m 644 "$tmpfile" "$dest"
         )
+        cmp -s "$tmpfile" "$dest" 2>/dev/null ||
+            run install -o 0 -g 0 -m 644 "$tmpfile" "$dest"
     done
 
     destdir=/etc/apt/sources.list.d
