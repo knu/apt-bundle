@@ -39,11 +39,11 @@ run() {
 
 xrun() {
     if [ -n "$DryRun" ]; then
-        xargs echo "$@"
+        xargs -r0 echo "$@"
     elif [ -n "$Verbose" ]; then
-        xargs sh -c 'echo "$*"; "$@"' . "$@"
+        xargs -r0 sh -c 'echo "$*"; "$@"' . "$@"
     else
-        xargs "$@"
+        xargs -r0 "$@"
     fi
 }
 
@@ -135,10 +135,10 @@ main() {
     done
 
     while read ppa; do
-        if [ -z "$(find /etc/apt/sources.list.d -name '*.list' -type f | xargs -r awk -v repo="http://ppa.launchpad.net/$ppa/ubuntu" '$1 == "deb" && $2 == repo')" ]; then
+        if [ -z "$(find /etc/apt/sources.list.d -name '*.list' -type f -print0 | xargs -r0 awk -v repo="http://ppa.launchpad.net/$ppa/ubuntu" '$1 == "deb" && $2 == repo')" ]; then
             run add-apt-repository --no-update -y "ppa:$ppa"
         fi
-    done < $TmpDir/sources/ppas
+    done < "$TmpDir/sources/ppas"
 
     run apt update
 
@@ -168,7 +168,7 @@ package() {
         https://*|http://*)
             printf "%s\n" "$pkg" >> "$TmpDir/debs" ;;
         *)
-            printf "%s\n" "$pkg" >> "$TmpDir/packages" ;;
+            printf "%s\0" "$pkg" >> "$TmpDir/packages" ;;
     esac
 }
 
