@@ -53,6 +53,7 @@ main() {
     set -e
 
     if [ "$(id -u)" -ne 0 ]; then
+        echo "Switching to root user..." >&2
         exec sudo "$0" "$@"
     fi
 
