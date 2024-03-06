@@ -93,6 +93,7 @@ main() {
     . "$TmpDir/Debfile"
 
     destdir=$HOME/.cache/$(basename "$0")
+    mkdir -p "$destdir"
 
     while read url; do
         file=$(basename "$url")
@@ -102,7 +103,7 @@ main() {
             curl -fsSLR -o "$destdir/$file" "$url"
         fi
         echo installing "$file"
-        run dpkg -i "$file"
+        run dpkg -i "$destdir/$file"
     done < "$TmpDir/debs"
 
     destdir=/usr/share/keyrings
