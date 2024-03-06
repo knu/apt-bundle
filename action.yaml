@@ -22,5 +22,5 @@ runs:
       env:
         DEBFILE: "${{ inputs.debfile }}"
       run: |
-        "${GITHUB_ACTION_PATH}/apt-bundle" "$DEBFILE"
+        "${GITHUB_ACTION_PATH}/apt-bundle" -v "$DEBFILE"
       shell: bash
