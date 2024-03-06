@@ -73,13 +73,19 @@ In this file, variables defined in `/etc/os-release` are available so you can us
 
 ### package
 
-Usage: `package <name>` | `package <URL>`
+Usage: `package <name> [<version-constraints>]` | `package <URL>`
 
-This command names a single package name or URL to a .deb file to be installed, which is the only argument to the command.
+The first syntax is to specify a single package name with optional version constraints.  The version constraints are passed to `apt satisfy` with the package name.  See [Syntax of relationship fields](https://www.debian.org/doc/debian-policy/ch-relationships.html#syntax-of-relationship-fields) for details.
+
+The second syntax is to specify a URL to a .deb file to be downloaded and installed.  The URL can be an HTTPS or HTTP URL.
 
 e.g.
 ```sh
 package faketime
+
+package git '>= 1:2.43.0'
+
+package https://example.com/path/to/package.deb
 ```
 
 ### ppa

@@ -143,6 +143,8 @@ main() {
     run apt update
 
     [ -s "$TmpDir/packages" ] && xrun apt install -y < "$TmpDir/packages"
+
+    [ -s "$TmpDir/satisfy" ] && xrun apt satisfy -y < "$TmpDir/satisfy"
 }
 
 initialize() {
@@ -162,13 +164,23 @@ die() {
 }
 
 package() {
-    [ $# -eq 1 ] || die "usage: package <name>"
+    [ $# -gt 0 -a $# -le 2 ] || die "usage: package <URL> | package <name> [<version-constraints>]"
     local pkg="$1"
     case "$pkg" in
         https://*|http://*)
+            [ $# -eq 1 ] || die "usage: package <URL>"
             printf "%s\n" "$pkg" >> "$TmpDir/debs" ;;
         *)
-            printf "%s\0" "$pkg" >> "$TmpDir/packages" ;;
+            case $# in
+                1)
+                    printf "%s\0" "$pkg" >> "$TmpDir/packages" ;;
+                2)
+                    printf "%s\n" "$2" | awk -F '[[:space:]]*,[[:space:]]*' '{for (i=1;i<=NF;i++) if ($i !~ /^(>[>=]|<[<=]|=)[[:space:]]*[[:digit:]]/) exit 1}' ||
+                        die "invalid version constraints: $2"
+                    printf "%s (%s)\0" "$pkg" "$2" >> "$TmpDir/satisfy" ;;
+                *)
+                    die "usage: package <name> [<version-constraints>]"
+            esac
     esac
 }
 
