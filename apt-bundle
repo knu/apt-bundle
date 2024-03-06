@@ -142,7 +142,7 @@ main() {
 
     run apt update
 
-    xrun apt install -y < "$TmpDir/packages"
+    [ -s "$TmpDir/packages" ] && xrun apt install -y < "$TmpDir/packages"
 }
 
 initialize() {
@@ -166,9 +166,10 @@ package() {
     local pkg="$1"
     case "$pkg" in
         https://*|http://*)
-            printf "%s\n" "$pkg" >> "$TmpDir/debs"
+            printf "%s\n" "$pkg" >> "$TmpDir/debs" ;;
+        *)
+            printf "%s\n" "$pkg" >> "$TmpDir/packages" ;;
     esac
-    printf "%s\n" "$pkg" >> "$TmpDir/packages"
 }
 
 keyring() {
