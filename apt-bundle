@@ -47,6 +47,10 @@ xrun() {
     fi
 }
 
+sq() {
+    /usr/bin/printf %q "$1"
+}
+
 main() {
     local opt file destdir filename dest tmpfile ppa
 
@@ -161,9 +165,16 @@ package() {
 }
 
 keyring() {
-    [ $# -eq 1 ] || die "usage: keyring <name> <<COMMAND...COMMAND"
     local name="$1"
-    cat > "$TmpDir/keyring_scripts/$name.sh"
+    local script="$TmpDir/keyring_scripts/$name.sh"
+    case $# in
+        1)
+            cat > "$script" ;;
+        2)
+            echo "curl -fsSL $(sq "$2")" > "$script" ;;
+        *)
+            die "usage: keyring <name> [<URL> | <<SH...SH]"
+    esac
 }
 
 source() {

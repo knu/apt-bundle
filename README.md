@@ -36,9 +36,7 @@ ppa git-core/ppa
 package git
 
 # Google Cloud SDK from the official third-party repository
-keyring cloud.google <<SH
-curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg
-SH
+keyring cloud.google https://packages.cloud.google.com/apt/doc/apt-key.gpg
 source google-cloud-sdk <<EOF
 deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main
 EOF
@@ -71,9 +69,9 @@ ppa git-core/ppa
 
 ### keyring
 
-Usage: `keyring <name> <<SH...SH`
+Usage: `keyring <name> <URL>` | `keyring <name> <<SH...SH`
 
-This command adds a keyring to the system.  The first argument is the name of the keyring and a shell script that outputs either a public GnuPG key or a binary keyring should be fed to the command using a here document.  The keyring file will be saved in `/usr/share/keyrings` with the name `<name>.gpg`.
+This command adds a keyring to the system.  The first argument is the name of the keyring, and the second argument is the URL to the GnuPG public key file.  Instead of specifying the second argument, a shell script that outputs a public GnuPG key or a keyring file to stdout can be fed to the command using a here document.  The keyring file will be saved in `/usr/share/keyrings` with the name `<name>.gpg`.
 
 e.g.
 ```sh
