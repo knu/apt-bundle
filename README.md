@@ -107,9 +107,7 @@ This command adds a keyring to the system.  The first argument is the name of th
 
 e.g.
 ```sh
-keyring cloud.google <<SH
-curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg
-SH
+keyring cloud.google https://packages.cloud.google.com/apt/doc/apt-key.gpg
 ```
 
 ### source
