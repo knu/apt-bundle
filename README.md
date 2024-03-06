@@ -67,6 +67,8 @@ EOF
 package google-cloud-sdk
 ```
 
+In this file, variables defined in `/etc/os-release` are available so you can use them to conditionally install packages or include values like `$VERSION_CODENAME` in source list definitions.
+
 ## Special commands available in Debfile
 
 ### package

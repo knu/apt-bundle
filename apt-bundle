@@ -87,6 +87,8 @@ main() {
 
     initialize
 
+    eval "$(sed 's/^/export /' /etc/os-release)"
+
     cat -- "$@" > "$TmpDir/Debfile"
     . "$TmpDir/Debfile"
 
