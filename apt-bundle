@@ -139,20 +139,24 @@ main() {
         if [ -z "$(find /etc/apt/sources.list.d -name '*.list' -type f -print0 | xargs -r0 awk -v repo="http://ppa.launchpad.net/$ppa/ubuntu" '$1 == "deb" && $2 == repo')" ]; then
             run add-apt-repository --no-update -y "ppa:$ppa"
         fi
-    done < "$TmpDir/sources/ppas"
+    done < "$TmpDir/ppas"
 
     run apt update
 
-    [ -s "$TmpDir/packages" ] && xrun apt install -y < "$TmpDir/packages"
+    if [ -s "$TmpDir/packages" ]; then
+        xrun apt install -y < "$TmpDir/packages"
+    fi
 
-    [ -s "$TmpDir/satisfy" ] && xrun apt satisfy -y < "$TmpDir/satisfy"
+    if [ -s "$TmpDir/satisfy" ]; then
+        xrun apt satisfy -y < "$TmpDir/satisfy"
+    fi
 }
 
 initialize() {
     TmpDir=$(mktemp -d "${TMPDIR-/tmp}/${0##*/}.XXXXXX") || exit 1
     trap 'finalize' 0 1 2 3 15
     mkdir -p "$TmpDir/keyring_scripts" "$TmpDir/keyrings" "$TmpDir/sources"
-    touch "$TmpDir/debs" "$TmpDir/ppas"
+    touch "$TmpDir/debs" "$TmpDir/ppas" "$TmpDir/packages" "$TmpDir/satisfy"
 }
 
 finalize() {
@@ -207,7 +211,7 @@ source() {
 ppa() {
     [ $# -eq 1 ] || die "usage: ppa <user>/<ppa-name>"
     local name="$1"
-    printf "%s\n" "$name" >> "$TmpDir/sources/ppas"
+    printf "%s\n" "$name" >> "$TmpDir/ppas"
 }
 
 main "$@"
