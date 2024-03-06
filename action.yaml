@@ -1,0 +1,26 @@
+name: "Apt-bundle: Install packages from Debfile"
+
+description: >-
+  Install Debian/Ubuntu packages on the flyfrom Debfile that lists
+  packages, source lists and keyrings to install.
+
+branding:
+  icon: download-cloud
+  color: black
+
+inputs:
+  debfile:
+    description: "The file listing packages, source lists and keyrings to install."
+    required: false
+    default: Debfile
+
+runs:
+  using: composite
+  steps:
+    - id: intall_debian_packages
+      name: Intall Debian packages
+      env:
+        DEBFILE: "${{ inputs.debfile }}"
+      run: |
+        "${GITHUB_ACTION_PATH}/apt-bundle" "$DEBFILE"
+      shell: bash

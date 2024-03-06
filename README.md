@@ -6,6 +6,30 @@ Apt-bundle is a simple tool to install a list of packages from a file using the 
 
 Just copy the `apt-bundle` script to a directory in your `$PATH` and make it executable.
 
+### Use from GitHub Actions
+
+You can use the apt-bundle action to install packages in a GitHub Actions workflow.  Here is an example workflow that installs a list of packages from a Debfile in the repository.
+
+```yaml
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      # Assume the source tree has a Debfile
+      - uses: actions/checkout@v4
+
+      - uses: knu/apt-bundle@v1
+        with:
+          debfile: path/to/Debfile  # optional; "Debfile" by default
+      # ...
+```
+
+#### Inputs
+
+- `debfile`
+
+    The path to the Debfile.  The default is `Debfile` in the repository root.
+
 ## Command Usage
 
 `apt-bundle [-n] [-v] [<file>...]`
