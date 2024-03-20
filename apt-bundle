@@ -85,7 +85,7 @@ main() {
 
     initialize
 
-    for file in apt-transport-https curl gpg; do
+    for file in apt-transport-https software-properties-common curl gpg; do
         is_installed "$file" && continue
         [ -n "$DryRun" ] && die "$file is not installed"
         printf "%s\0" "$file"
