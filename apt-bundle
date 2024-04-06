@@ -97,7 +97,7 @@ main() {
         : > "$TmpDir/packages"
     fi
 
-    export ARCH="$(arch)"
+    export ARCH="$(dpkg --print-architecture)"
     eval "$(sed 's/^/export /' /etc/os-release)"
 
     cat -- "$@" > "$TmpDir/Debfile"
