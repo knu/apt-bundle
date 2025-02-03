@@ -103,20 +103,6 @@ main() {
     cat -- "$@" > "$TmpDir/Debfile"
     . "$TmpDir/Debfile"
 
-    destdir=$HOME/.cache/$(basename "$0")
-    mkdir -p "$destdir"
-
-    while read url; do
-        file=$(basename "$url")
-        if [ -f "$destdir/$file" ]; then
-            curl -fsSLR -z "$destdir/$file" -o "$destdir/$file" "$url"
-        else
-            curl -fsSLR -o "$destdir/$file" "$url"
-        fi
-        echo installing "$file"
-        run dpkg -i "$destdir/$file"
-    done < "$TmpDir/debs"
-
     destdir=/usr/share/keyrings
 
     find "$TmpDir/keyring_scripts" -type f | while read -r file; do
@@ -161,6 +147,20 @@ main() {
     if [ -s "$TmpDir/satisfy" ]; then
         xrun apt satisfy -y < "$TmpDir/satisfy"
     fi
+
+    destdir=$HOME/.cache/$(basename "$0")
+    mkdir -p "$destdir"
+
+    while read url; do
+        file=$(basename "$url")
+        if [ -f "$destdir/$file" ]; then
+            curl -fsSLR -z "$destdir/$file" -o "$destdir/$file" "$url"
+        else
+            curl -fsSLR -o "$destdir/$file" "$url"
+        fi
+        echo installing "$file"
+        run dpkg -i "$destdir/$file"
+    done < "$TmpDir/debs"
 }
 
 initialize() {
