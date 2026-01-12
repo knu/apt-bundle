@@ -23,9 +23,6 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Verbose=
-DryRun=
-
 run() {
     if [ -n "$DryRun" ]; then
         echo "$*"
@@ -52,7 +49,12 @@ sq() {
 }
 
 main() {
-    local opt file destdir filename dest tmpfile ppa
+    # Script is being sourced, skip CLI logic
+    if [ "${0##*/}" != apt-bundle ]; then
+        initialize
+        main_prerequisites;
+        return
+    fi
 
     set -e
 
@@ -61,6 +63,19 @@ main() {
         exec sudo "$0" "$@"
     fi
 
+    main_options "$@";
+
+    initialize
+    main_prerequisites;
+    main_env;
+
+    cat -- "$@" > "$TmpDir/Debfile"
+    . "$TmpDir/Debfile"
+
+    apply_changes;
+}
+
+main_options()  {
     while getopts "nv" opt; do
         case $opt in
             n)
@@ -80,10 +95,15 @@ main() {
         echo "usage: $0 [-n] [-v] <Debfile>..." >&2
         exit 64
     fi
+}
 
+main_env() {
+    export ARCH="$(dpkg --print-architecture)"
+    eval "$(sed 's/^/export /' /etc/os-release)"
+}
+
+main_prerequisites() {
     type apt >/dev/null 2>&1 || die "apt is not installed"
-
-    initialize
 
     for file in apt-transport-https software-properties-common curl gpg; do
         is_installed "$file" && continue
@@ -96,22 +116,29 @@ main() {
         xrun apt install -y < "$TmpDir/packages"
         : > "$TmpDir/packages"
     fi
+}
 
-    export ARCH="$(dpkg --print-architecture)"
-    eval "$(sed 's/^/export /' /etc/os-release)"
+apply_changes() {
+    apply_keyrings;
+    apply_sources;
+    apply_ppas;
 
-    cat -- "$@" > "$TmpDir/Debfile"
-    . "$TmpDir/Debfile"
+    run apt update
 
-    destdir=/usr/share/keyrings
+    apply_packages;
+    apply_debs;
+}
+
+apply_keyrings() {
+    local destdir=/usr/share/keyrings
 
     find "$TmpDir/keyring_scripts" -type f | while read -r file; do
-        filename=$(basename "$file" .sh).gpg
-        dest=$destdir/$filename
-        tmpfile=$TmpDir/keyrings/$filename
+        local filename=$(basename "$file" .sh).gpg
+        local dest=$destdir/$filename
+        local tmpfile=$TmpDir/keyrings/$filename
         (
             set -e
-            dir=$TmpDir/tmp
+            local dir=$TmpDir/tmp
             rm -rf "$dir"
             mkdir "$dir"
             cd "$dir"
@@ -124,22 +151,26 @@ main() {
         cmp -s "$tmpfile" "$dest" 2>/dev/null ||
             run install -o 0 -g 0 -m 644 "$tmpfile" "$dest"
     done
+}
 
-    destdir=/etc/apt/sources.list.d
+apply_sources() {
+    local destdir=/etc/apt/sources.list.d
 
     find "$TmpDir/sources" -type f -name '*.list' | while read -r file; do
         cmp -s "$file" "$destdir/$(basename "$file")" 2>/dev/null ||
             run install -o 0 -g 0 -m 644 "$file" "$destdir/"
     done
+}
 
+apply_ppas() {
     while read ppa; do
         if [ -z "$(find /etc/apt/sources.list.d -name '*.list' -type f -print0 | xargs -r0 awk -v repo="http://ppa.launchpad.net/$ppa/ubuntu" '$1 == "deb" && $2 == repo')" ]; then
             run add-apt-repository --no-update -y "ppa:$ppa"
         fi
     done < "$TmpDir/ppas"
+}
 
-    run apt update
-
+apply_packages() {
     if [ -s "$TmpDir/packages" ]; then
         xrun apt install -y < "$TmpDir/packages"
     fi
@@ -147,12 +178,14 @@ main() {
     if [ -s "$TmpDir/satisfy" ]; then
         xrun apt satisfy -y < "$TmpDir/satisfy"
     fi
+}
 
-    destdir=$HOME/.cache/$(basename "$0")
+apply_debs() {
+    local destdir=$HOME/.cache/$(basename "$0")
     mkdir -p "$destdir"
 
     while read url; do
-        file=$(basename "$url")
+        local file=$(basename "$url")
         if [ -f "$destdir/$file" ]; then
             curl -fsSLR -z "$destdir/$file" -o "$destdir/$file" "$url"
         else
