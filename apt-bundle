@@ -91,6 +91,11 @@ main() {
         printf "%s\0" "$file"
     done > "$TmpDir/packages"
 
+    # Docker environments may not have package lists
+    if [ -z "$(ls -A /var/lib/apt/lists 2>/dev/null)" ]; then
+        apt update -qyy;
+    fi
+
     if [ -s "$TmpDir/packages" ]; then
         echo "installing necessary packages"
         xrun apt install -y < "$TmpDir/packages"
