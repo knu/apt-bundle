@@ -154,7 +154,7 @@ EOF
 
 ## License
 
-Copyright (c) 2024 Akinori Musha
+Copyright (c) 2024-2026 Akinori Musha
 
 This software is released under the 2-clause BSD license.  See the LICENSE file for details.
 
