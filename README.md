@@ -48,7 +48,7 @@ jobs:
 
 ## Debfile Format
 
-Create a text file and list the packages, source lists and keyrings you want in your environment  in that file using the commands described later.  This file is interpreted by `/bin/sh` (dash) as a shell script, and typically named `Debfile`.  Apt-bundle looks for the file with that name in the current directory by default.
+Create a text file and list the packages, source lists, preferences and keyrings you want in your environment in that file using the commands described later.  This file is interpreted by `/bin/sh` (dash) as a shell script, and typically named `Debfile`.  Apt-bundle looks for the file with that name in the current directory by default.
 
 ```sh
 package build-essential
@@ -65,6 +65,19 @@ source google-cloud-sdk <<EOF
 deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main
 EOF
 package google-cloud-sdk
+
+# Prefer nginx.org packages over distribution packages
+keyring nginx-archive-keyring https://nginx.org/keys/nginx_signing.key
+source nginx <<EOF
+deb [arch=$ARCH signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] https://nginx.org/packages/mainline/ubuntu $VERSION_CODENAME nginx
+EOF
+preference nginx <<EOF
+Package: *
+Pin: origin nginx.org
+Pin: release o=nginx
+Pin-Priority: 900
+EOF
+package nginx
 ```
 
 In this file, `ARCH`, which is set to the output of `dpkg --print-architecture`, and the variables defined in `/etc/os-release` are available as environment variables so you can use them to conditionally install packages or include values like `$VERSION_CODENAME` in source list definitions.
@@ -120,6 +133,22 @@ e.g.
 ```sh
 source google-cloud-sdk <<EOF
 deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main
+EOF
+```
+
+### preference
+
+Usage: `preference <name> <<EOF...EOF`
+
+This command adds an apt preferences file to the system.  The first argument is the name of the preferences file, and the preferences content should be fed to the command using a here document.  The preferences file will be saved in `/etc/apt/preferences.d` with the name `<name>`.
+
+e.g.
+```sh
+preference nginx <<EOF
+Package: *
+Pin: origin nginx.org
+Pin: release o=nginx
+Pin-Priority: 900
 EOF
 ```
 

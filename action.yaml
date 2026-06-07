@@ -2,7 +2,7 @@ name: "Apt-bundle: Install packages from Debfile"
 
 description: >-
   Install Debian/Ubuntu packages on the flyfrom Debfile that lists
-  packages, source lists and keyrings to install.
+  packages, source lists, preferences and keyrings to install.
 
 branding:
   icon: download-cloud
@@ -10,7 +10,7 @@ branding:
 
 inputs:
   debfile:
-    description: "The file listing packages, source lists and keyrings to install."
+    description: "The file listing packages, source lists, preferences and keyrings to install."
     required: false
     default: Debfile
 

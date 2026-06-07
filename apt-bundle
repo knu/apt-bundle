@@ -132,6 +132,14 @@ main() {
             run install -o 0 -g 0 -m 644 "$file" "$destdir/"
     done
 
+    destdir=/etc/apt/preferences.d
+    run mkdir -p "$destdir"
+
+    find "$TmpDir/preferences" -type f | while read -r file; do
+        cmp -s "$file" "$destdir/$(basename "$file")" 2>/dev/null ||
+            run install -o 0 -g 0 -m 644 "$file" "$destdir/"
+    done
+
     while read ppa; do
         if [ -z "$(find /etc/apt/sources.list.d -name '*.list' -type f -print0 | xargs -r0 awk -v repo="http://ppa.launchpad.net/$ppa/ubuntu" '$1 == "deb" && $2 == repo')" ]; then
             run add-apt-repository --no-update -y "ppa:$ppa"
@@ -166,7 +174,7 @@ main() {
 initialize() {
     TmpDir=$(mktemp -d "${TMPDIR-/tmp}/${0##*/}.XXXXXX") || exit 1
     trap 'finalize' 0 1 2 3 15
-    mkdir -p "$TmpDir/keyring_scripts" "$TmpDir/keyrings" "$TmpDir/sources"
+    mkdir -p "$TmpDir/keyring_scripts" "$TmpDir/keyrings" "$TmpDir/sources" "$TmpDir/preferences"
     touch "$TmpDir/debs" "$TmpDir/ppas" "$TmpDir/packages" "$TmpDir/satisfy"
 }
 
@@ -221,6 +229,12 @@ source() {
     [ $# -eq 1 ] || die "usage: source <name> <<LIST...LIST"
     local name="$1"
     cat > "$TmpDir/sources/$name.list"
+}
+
+preference() {
+    [ $# -eq 1 ] || die "usage: preference <name> <<PREF...PREF"
+    local name="$1"
+    cat > "$TmpDir/preferences/$name"
 }
 
 ppa() {
