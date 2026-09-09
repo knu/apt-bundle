@@ -172,8 +172,13 @@ main() {
 }
 
 initialize() {
+    local sig
+
     TmpDir=$(mktemp -d "${TMPDIR-/tmp}/${0##*/}.XXXXXX") || exit 1
-    trap 'finalize' 0 1 2 3 15
+    for sig in 0 1 2 3 15; do
+        trap 'ret=$?; trap "" 1 2 3 15; trap - 0
+            finalize; exit $(( '"$sig"' ? 128 + '"$sig"' : ret ))' "$sig"
+    done
     mkdir -p "$TmpDir/keyring_scripts" "$TmpDir/keyrings" "$TmpDir/sources" "$TmpDir/preferences"
     touch "$TmpDir/debs" "$TmpDir/ppas" "$TmpDir/packages" "$TmpDir/satisfy"
 }
