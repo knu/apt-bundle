@@ -4,6 +4,14 @@ Apt-bundle is a simple tool to install a list of packages from a file using the 
 
 ## Installation
 
+Install with [mise](https://mise.jdx.dev/):
+
+```sh
+mise use -g github:knu/apt-bundle@latest
+```
+
+Requires a Debian/Ubuntu-based system with apt.
+
 Just copy the `apt-bundle` script to a directory in your `$PATH` and make it executable.
 
 ### Use from GitHub Actions
